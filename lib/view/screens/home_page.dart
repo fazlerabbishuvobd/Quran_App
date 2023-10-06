@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:quran_app/audio_screen.dart';
 import 'package:quran_app/view/screens/sura_details.dart';
+import 'package:http/http.dart' as http;
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -10,6 +13,41 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int selectedIndex = -1;
+  bool isLoading = false;
+  List<dynamic> suraList = [];
+
+  Future<List<dynamic>> getSuraList() async{
+    try{
+      setState(() {
+        isLoading = true;
+      });
+      final response = await http.get(Uri.parse('https://equran.id/api/v2/surat'));
+      setState(() {
+        isLoading =false;
+      });
+      if(response.statusCode == 200)
+        {
+          final jsonData = jsonDecode(response.body);
+          setState(() {
+            suraList = jsonData['data'];
+          });
+          return suraList;
+        }
+      else{
+        throw Exception('Cannot Connected to Server');
+      }
+    }catch(e)
+    {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  void initState() {
+    getSuraList();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,35 +127,36 @@ class _HomePageState extends State<HomePage> {
               ),
 
               /// Sura List
-              ListView.builder(
+              isLoading?const Center(child: CircularProgressIndicator(),):ListView.builder(
                 physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: 10,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        debugPrint("$index");
-                        setState(() {
-                          selectedIndex = index;
-                        });
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SuraDetailsPage()));
-                      },
-                      child: ListTile(
-                        tileColor: selectedIndex == index?Colors.amber:Colors.transparent,
-                        leading: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Image.asset('assets/icon/star.png'),
-                            Text('$index',style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold))
-                          ],
-                        ),
-                        title: const Text("Al Fatiha",style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
-                        subtitle: const Text("Opening - Verse 7"),
-                        trailing: const Text("الفاتحة",style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                shrinkWrap: true,
+                itemCount: suraList.length,
+                itemBuilder: (context, index) {
+                  final suraInfo = suraList[index];
+                  return GestureDetector(
+                    onTap: () {
+                      debugPrint("$index");
+                      setState(() {
+                        selectedIndex = index;
+                      });
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(index: ++index,)));
+                    },
+                    child: ListTile(
+                      tileColor: selectedIndex == index?Colors.amber:Colors.transparent,
+                      leading: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image.asset('assets/icon/star.png'),
+                          Text('${index+1}',style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold))
+                        ],
                       ),
-                    );
-                  },
-              )
+                      title: Text(suraInfo['namaLatin'],style: const TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                      subtitle: Text("${suraInfo['tempatTurun']} - Verse ${suraInfo['jumlahAyat']}"),
+                      trailing: Text(suraInfo['nama'],style: const TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),

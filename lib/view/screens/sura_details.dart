@@ -1,22 +1,61 @@
+import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 class SuraDetailsPage extends StatefulWidget {
-  const SuraDetailsPage({super.key});
+  final int index;
+  const SuraDetailsPage({super.key,required this.index});
 
   @override
   State<SuraDetailsPage> createState() => _SuraDetailsPageState();
 }
 
 class _SuraDetailsPageState extends State<SuraDetailsPage> {
+  Map<String,dynamic> suraDetails ={};
+
+  Future<Map<String,dynamic>> getSuraDetails(int index) async{
+    try{
+      setState(() {
+        isLoading = true;
+      });
+      final response = await http.get(Uri.parse('https://equran.id/api/v2/surat/$index'));
+      setState(() {
+        isLoading = false;
+      });
+      if(response.statusCode == 200)
+      {
+        final jsonData = jsonDecode(response.body);
+        setState(() {
+          suraDetails = jsonData['data'];
+        });
+        return suraDetails;
+      }
+      else{
+        throw Exception('Cannot Connected to Server');
+      }
+    }catch(e)
+    {
+      throw Exception(e.toString());
+    }
+  }
+
   AudioPlayer audioPlayer = AudioPlayer();
   bool isPlaying = false;
   double duration = 0.0;
   double position = 0.0;
-  bool isLoading = false;
+  bool isLoading =false;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
+    getSuraDetails(widget.index);
+
+    audioPlayer.onPlayerStateChanged.listen((state) {
+      setState(() {
+        isPlaying = state == PlayerState.playing;
+      });
+    });
 
     audioPlayer.onPositionChanged.listen((Duration p) {
       setState(() {
@@ -30,27 +69,37 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
       });
     });
   }
-
   Future<void> _playPause() async {
-
     if (isPlaying) {
       await audioPlayer.pause();
     } else {
-      await audioPlayer.play(UrlSource('https://equran.nos.wjv-1.neo.id/audio-full/Abdullah-Al-Juhany/001.mp3'));
+      if(isPlaying)
+        {
+
+        }
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Wait 10-30 sec to Load Song'),
+            duration: Duration(seconds: 3)));
+      }
+      await audioPlayer.play(UrlSource(suraDetails['audioFull']['02']));
     }
     setState(() {
       isPlaying = !isPlaying;
     });
-  }
 
+  }
+  
   void _seekTo(double seconds) {
     Duration newDuration = Duration(seconds: seconds.toInt());
     audioPlayer.seek(newDuration);
   }
 
+  String timeFormat(int seconds) {
+    return '${Duration(seconds: seconds)}'.split('.')[0].padLeft(8, '0');
+  }
+
   @override
   void dispose() {
-    audioPlayer.stop();
     audioPlayer.release();
     audioPlayer.dispose();
     super.dispose();
@@ -61,17 +110,18 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Al Fatiha"),
+        title: isLoading? Center(child: CircularProgressIndicator(),):Text(suraDetails['namaLatin']),
         backgroundColor: Colors.amber,
       ),
-      body: SingleChildScrollView(
+      body: isLoading? const Center(child: CircularProgressIndicator(),):
+      SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(10),
           child: Column(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                height: 150,
+                height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
@@ -80,24 +130,22 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("AL - FATIHA",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-                    const Text("The Opening"),
-                    const Text("Verse - 07"),
-                    //const Text("الفاتحة"),
-                    Text("$duration"),
-                    Text("$position"),
+                    Text("${suraDetails['namaLatin']} (${suraDetails['nama']})",style: const TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
+                    Text(suraDetails['tempatTurun']),
+                    Text('Verse ${suraDetails['jumlahAyat']}'),
                   ],
                 ),
               ),
               const SizedBox(
-                height: 10,
+                height: 20,
               ),
 
               ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  itemCount: 10,
+                  itemCount: suraDetails['jumlahAyat'],
                   itemBuilder: (context, index) {
+                    final suraInfo = suraDetails['ayat'][index];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -108,7 +156,7 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                               alignment: Alignment.center,
                               children: [
                                 Image.asset('assets/icon/star.png',scale: 3,),
-                                Text('$index',style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold))
+                                Text('${index+1}',style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold))
                               ],
                             ),
                             const Row(
@@ -122,15 +170,15 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                         ),
                         const SizedBox(height: 20),
 
-                        const Text('ٰهِ الرَّحْمٰنِ الرَّحِيْمِٰهِ الرَّحْمٰنِ الرَّحِيْمِٰهِ الرَّحْمٰنِ الرَّحِيْمِٰهِلرَّحِيْمِٰهِ الرَّحْمٰنِ الرَّحِيْمِٰهِ الرَّحْمٰنِ الرَّحِيْمِٰهِ',
-                          style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.right,
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(suraInfo['teksArab'],style: const TextStyle(fontSize: 24,fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.right,
+                          ),
                         ),
                         const SizedBox(height: 20),
 
-                        const Text('bismillāhir-raḥmānir-raḥīm(i). bismillāhir-raḥmānir-raḥīm(i).',
-                            style: TextStyle(fontSize: 16),
-                        ),
+                        Text(suraInfo['teksLatin'], style: const TextStyle(fontSize: 16),),
                         const SizedBox(height: 20),
                       ],
                     );
@@ -142,8 +190,8 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
         ),
       ),
 
-
-      bottomSheet: Container(
+      bottomSheet: isLoading? const Center(child: CircularProgressIndicator()):
+      Container(
         margin: const EdgeInsets.all(10),
         padding: const EdgeInsets.all(10),
         height: 120,
@@ -157,9 +205,9 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('$position'),
+                Text(timeFormat(position.toInt())),
                 SizedBox(
-                  width: 280,
+                  width: 240,
                   child: Slider(
                     value: position,
                     min: 0.0,
@@ -169,27 +217,31 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                     },
                   ),
                 ),
-                Text('$duration'),
+                Text(timeFormat(duration.toInt())),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("AL FATIHA",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
+                Text(suraDetails['namaLatin'],style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
                 Row(
                   children: [
                     const Icon(Icons.skip_previous,size: 35),
                     IconButton(
                       icon: Icon(isPlaying? Icons.pause : Icons.play_circle, size: 35),
                       onPressed: () {
-
                         _playPause();
                       },
                     ),
-                    const Icon(Icons.skip_next,size: 35),
+                    GestureDetector(
+                        onTap: (){
+                          audioPlayer.stop();
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(index: suraDetails['suratSelanjutnya']['nomor']),));
+                        },
+                        child: const Icon(Icons.skip_next,size: 35)),
                   ],
                 ),
-                const Text("AL Bakarah",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
+                Text(suraDetails['suratSelanjutnya']['namaLatin'],style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
               ],
             ),
           ],

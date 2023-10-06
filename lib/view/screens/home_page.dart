@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -44,6 +45,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+
+      });
+    });
     getSuraList();
     super.initState();
   }
@@ -60,12 +66,6 @@ class _HomePageState extends State<HomePage> {
             Text("Fazle Rabbi"),
           ],
         ),
-        actions: const [
-          CircleAvatar(
-            radius: 25,
-            backgroundColor: Colors.white,
-          )
-        ],
         centerTitle: true,
         backgroundColor: Colors.amber,
       ),
@@ -78,6 +78,8 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+
               Container(
                 height: 150,
                 width: double.infinity,
@@ -85,12 +87,11 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.amber
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("ISHA",style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
-                    Text("08.00 PM",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-                    Row(
+                    Text(DateTime.now().toString().split(' ')[1].split('.')[0],style: const TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.location_on),
@@ -105,23 +106,6 @@ class _HomePageState extends State<HomePage> {
               ),
 
               const Text("Reading Sura"),
-              Container(
-                padding: const EdgeInsets.all(10),
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.amber
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Last Read",style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
-                    Text("AL - FATIHA",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-                    Text("Continue Reading"),
-                  ],
-                ),
-              ),
               const SizedBox(
                 height: 10,
               ),
@@ -139,7 +123,7 @@ class _HomePageState extends State<HomePage> {
                       setState(() {
                         selectedIndex = index;
                       });
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(index: ++index,)));
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(index: index+1,)));
                     },
                     child: ListTile(
                       tileColor: selectedIndex == index?Colors.amber:Colors.transparent,

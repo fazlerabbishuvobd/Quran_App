@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:quran_app/contants/app_constants.dart';
 
 class SuraDetailsPage extends StatefulWidget {
   final int index;
@@ -45,6 +46,8 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
   double duration = 0.0;
   double position = 0.0;
   bool isLoading =false;
+  int speaker = 5;
+  int s=-1;
 
   @override
   void initState(){
@@ -81,7 +84,10 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Wait 10-30 sec to Load Song'),
             duration: Duration(seconds: 3)));
       }
-      await audioPlayer.play(UrlSource(suraDetails['audioFull']['02']));
+      await audioPlayer.play(UrlSource(
+          speaker==1?suraDetails['audioFull']['01']:speaker==2?suraDetails['audioFull']['02']:
+          speaker==3?suraDetails['audioFull']['03']:suraDetails['audioFull']['01'])
+      );
     }
     setState(() {
       isPlaying = !isPlaying;
@@ -108,9 +114,10 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+
     return Scaffold(
       appBar: AppBar(
-        title: isLoading? Center(child: CircularProgressIndicator(),):Text(suraDetails['namaLatin']),
         backgroundColor: Colors.amber,
       ),
       body: isLoading? const Center(child: CircularProgressIndicator(),):
@@ -121,12 +128,13 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                height: 120,
+                height: height*0.140,
                 width: double.infinity,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: Colors.amber
                 ),
+
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -136,8 +144,43 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 20,
+              SizedBox(
+                height: height*0.03,
+              ),
+              SizedBox(
+                height: 140,
+                child: ListView.separated(
+                  separatorBuilder: (context, index) => const SizedBox(width: 20,),
+                  scrollDirection: Axis.horizontal,
+                  itemCount:5,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        onTap: () {
+                          debugPrint('$index');
+                          setState(() {
+                            s = index;
+                          });
+                        },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: s == index?Colors.amber:Colors.transparent,
+                              child: CircleAvatar(
+                                radius: 45,
+                                backgroundImage: AssetImage(AppConstant.speakerImage[index]),
+                              ),
+                            ),
+                            Text(AppConstant.speakerName[index],style: TextStyle(fontWeight: s == index?FontWeight.bold:FontWeight.normal),textAlign: TextAlign.center,)
+                          ],
+                        ),
+                      );
+                    },
+                ),
+              ),
+              SizedBox(
+                height: height*0.03,
               ),
 
               ListView.builder(
@@ -152,20 +195,15 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            const Text('-----------------------'),
                             Stack(
                               alignment: Alignment.center,
                               children: [
-                                Image.asset('assets/icon/star.png',scale: 3,),
+                                Image.asset('assets/icon/star.png',scale: 2,),
                                 Text('${index+1}',style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold))
                               ],
                             ),
-                            const Row(
-                              children: [
-                                Icon(Icons.play_circle),
-                                SizedBox(width: 10),
-                                Icon(Icons.share),
-                              ],
-                            )
+                            const Text('-----------------------'),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -189,16 +227,16 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
           ),
         ),
       ),
-
-      bottomSheet: isLoading? const Center(child: CircularProgressIndicator()):
+      extendBody: true,
+      bottomNavigationBar: isLoading? const Center(child: CircularProgressIndicator()):
       Container(
         margin: const EdgeInsets.all(10),
         padding: const EdgeInsets.all(10),
-        height: 120,
+        height: height*0.15,
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
-          color: Colors.amber,
+          color: Colors.amber
         ),
         child: Column(
           children: [
@@ -223,7 +261,7 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(suraDetails['namaLatin'],style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
+                Text(suraDetails['namaLatin'],style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
                 Row(
                   children: [
                     const Icon(Icons.skip_previous,size: 35),
@@ -241,7 +279,7 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                         child: const Icon(Icons.skip_next,size: 35)),
                   ],
                 ),
-                Text(suraDetails['suratSelanjutnya']['namaLatin'],style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
+                Text(suraDetails['nomor'] == 114?'                  ':suraDetails['suratSelanjutnya']['namaLatin'],style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
               ],
             ),
           ],

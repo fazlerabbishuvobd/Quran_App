@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:quran_app/contants/app_constants.dart';
+import 'package:quran_app/view/screens/home_page.dart';
 
 class SuraDetailsPage extends StatefulWidget {
-  final int index;
-  const SuraDetailsPage({super.key,required this.index});
+  final int index,speaker;
+  const SuraDetailsPage({super.key,required this.index,required this.speaker});
 
   @override
   State<SuraDetailsPage> createState() => _SuraDetailsPageState();
@@ -46,8 +46,6 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
   double duration = 0.0;
   double position = 0.0;
   bool isLoading =false;
-  int speaker = 5;
-  int s=-1;
 
   @override
   void initState(){
@@ -85,8 +83,8 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
             duration: Duration(seconds: 3)));
       }
       await audioPlayer.play(UrlSource(
-          speaker==1?suraDetails['audioFull']['01']:speaker==2?suraDetails['audioFull']['02']:
-          speaker==3?suraDetails['audioFull']['03']:suraDetails['audioFull']['01'])
+          widget.speaker==1?suraDetails['audioFull']['01']:widget.speaker==2?suraDetails['audioFull']['02']:
+          widget.speaker==3?suraDetails['audioFull']['03']:suraDetails['audioFull']['01'])
       );
     }
     setState(() {
@@ -99,7 +97,6 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
     Duration newDuration = Duration(seconds: seconds.toInt());
     audioPlayer.seek(newDuration);
   }
-
   String timeFormat(int seconds) {
     return '${Duration(seconds: seconds)}'.split('.')[0].padLeft(8, '0');
   }
@@ -119,6 +116,11 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.amber,
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage(),), (route) => false);
+          }, icon: const Icon(Icons.home))
+        ],
       ),
       body: isLoading? const Center(child: CircularProgressIndicator(),):
       SingleChildScrollView(
@@ -147,42 +149,6 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
               SizedBox(
                 height: height*0.03,
               ),
-              SizedBox(
-                height: 140,
-                child: ListView.separated(
-                  separatorBuilder: (context, index) => const SizedBox(width: 20,),
-                  scrollDirection: Axis.horizontal,
-                  itemCount:5,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          debugPrint('$index');
-                          setState(() {
-                            s = index;
-                          });
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: s == index?Colors.amber:Colors.transparent,
-                              child: CircleAvatar(
-                                radius: 45,
-                                backgroundImage: AssetImage(AppConstant.speakerImage[index]),
-                              ),
-                            ),
-                            Text(AppConstant.speakerName[index],style: TextStyle(fontWeight: s == index?FontWeight.bold:FontWeight.normal),textAlign: TextAlign.center,)
-                          ],
-                        ),
-                      );
-                    },
-                ),
-              ),
-              SizedBox(
-                height: height*0.03,
-              ),
-
               ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
@@ -274,7 +240,7 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                     GestureDetector(
                         onTap: (){
                           audioPlayer.stop();
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(index: suraDetails['suratSelanjutnya']['nomor']),));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(speaker: widget.speaker,index: suraDetails['suratSelanjutnya']['nomor'])));
                         },
                         child: const Icon(Icons.skip_next,size: 35)),
                   ],

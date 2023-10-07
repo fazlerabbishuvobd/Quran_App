@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:quran_app/view/screens/search_sura.dart';
 import 'package:quran_app/view/screens/sura_details.dart';
 import 'package:http/http.dart' as http;
+
+import '../../contants/app_constants.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,6 +18,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int selectedIndex = -1;
   bool isLoading = false;
+  int speaker = 5;
   List<dynamic> suraList = [];
 
   Future<List<dynamic>> getSuraList() async{
@@ -43,15 +47,22 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  late Timer timer;
   @override
   void initState() {
-    Timer.periodic(const Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
 
       });
     });
     getSuraList();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -66,6 +77,12 @@ class _HomePageState extends State<HomePage> {
             Text("Fazle Rabbi"),
           ],
         ),
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchSura(sura: suraList,)));
+          }, icon: const Icon(Icons.search)),
+          IconButton(onPressed: (){}, icon: const Icon(Icons.light_mode)),
+        ],
         centerTitle: true,
         backgroundColor: Colors.amber,
       ),
@@ -79,7 +96,7 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-
+              /// Time
               Container(
                 height: 150,
                 width: double.infinity,
@@ -105,9 +122,55 @@ class _HomePageState extends State<HomePage> {
                 height: 10,
               ),
 
-              const Text("Reading Sura"),
+              Container(
+                alignment: Alignment.center,
+                height: 30,
+                  color: Colors.amber,
+                  child: const Text("Choose a Quran Reciter")
+              ),
+
+              /// Reciter List
+              SizedBox(
+                height: 140,
+                child: ListView.separated(
+                  separatorBuilder: (context, index) => const SizedBox(width: 20,),
+                  scrollDirection: Axis.horizontal,
+                  itemCount:5,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        debugPrint('$index');
+                        setState(() {
+                          speaker = index;
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: speaker == index?Colors.amber:Colors.transparent,
+                            child: CircleAvatar(
+                              radius: 45,
+                              backgroundImage: AssetImage(AppConstant.speakerImage[index]),
+                            ),
+                          ),
+                          Text(AppConstant.speakerName[index],style: TextStyle(fontWeight: speaker == index?FontWeight.bold:FontWeight.normal),textAlign: TextAlign.center,)
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
               const SizedBox(
                 height: 10,
+              ),
+
+              Container(
+                  alignment: Alignment.center,
+                  height: 30,
+                  color: Colors.amber,
+                  child: const Text("Sura List")
               ),
 
               /// Sura List
@@ -123,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                       setState(() {
                         selectedIndex = index;
                       });
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(index: index+1,)));
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(index: index+1,speaker: speaker)));
                     },
                     child: ListTile(
                       tileColor: selectedIndex == index?Colors.amber:Colors.transparent,

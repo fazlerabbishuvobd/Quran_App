@@ -12,8 +12,8 @@ class SearchSura extends StatefulWidget {
 class _SearchSuraState extends State<SearchSura> {
   final searchController = TextEditingController();
   int selectedIndex =-1;
-  String? searchKey;
   List filteredList = [];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,13 +37,16 @@ class _SearchSuraState extends State<SearchSura> {
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(10),
-          child: filteredList.isEmpty? const Text('Empty'):
+          child: filteredList.isEmpty? const Center(child: Text('Not Found')):
+
           ListView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemCount: filteredList.length,
             itemBuilder: (context, index) {
+
               final suraInfo = widget.sura[index];
+
               return GestureDetector(
                 onTap: () {
                   debugPrint("$index");

@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:quran_app/view/screens/home_page.dart';
+
+import '../widgets/sura_details_screen_shimmer_effect.dart';
 
 class SuraDetailsPage extends StatefulWidget {
   final int index,speaker;
@@ -118,11 +121,12 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
         backgroundColor: Colors.amber,
         actions: [
           IconButton(onPressed: (){
-            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage(),), (route) => false);
-          }, icon: const Icon(Icons.home))
+            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage()), (route) => false);},
+              icon: const Icon(Icons.home)
+          )
         ],
       ),
-      body: isLoading? const Center(child: CircularProgressIndicator(),):
+      body: isLoading? const SuraDetailsScreenShimmerEffect():
       SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(10),
@@ -130,7 +134,7 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                height: height*0.140,
+                height: height*0.141,
                 width: double.infinity,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
@@ -140,15 +144,15 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("${suraDetails['namaLatin']} (${suraDetails['nama']})",style: const TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-                    Text(suraDetails['tempatTurun']),
-                    Text('Verse ${suraDetails['jumlahAyat']}'),
+                    Text("${suraDetails['namaLatin']} (${suraDetails['nama']})",style: myFontStyle.copyWith(fontSize: 30,fontWeight: FontWeight.bold)),
+                    Text(suraDetails['tempatTurun'],style: myFontStyle.copyWith(fontSize: 16,fontWeight: FontWeight.bold)),
+                    Text('Verse ${suraDetails['jumlahAyat']}',style: myFontStyle.copyWith(fontSize: 16,fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              SizedBox(
-                height: height*0.03,
-              ),
+              SizedBox(height: height*0.03),
+
+              ///Ayat
               ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
@@ -166,35 +170,38 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                               alignment: Alignment.center,
                               children: [
                                 Image.asset('assets/icon/star.png',scale: 2,),
-                                Text('${index+1}',style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold))
+                                Text('${index+1}',style: myFontStyle.copyWith(fontSize: 16,fontWeight: FontWeight.bold))
                               ],
                             ),
                             const Text('-----------------------'),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: height*0.03),
 
                         Align(
                           alignment: Alignment.centerRight,
-                          child: Text(suraInfo['teksArab'],style: const TextStyle(fontSize: 24,fontWeight: FontWeight.bold),
+                          child: Text(suraInfo['teksArab'],style: const TextStyle(fontSize: 24,fontWeight: FontWeight.bold,color: Colors.orange),
                             textAlign: TextAlign.right,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: height*0.03),
 
-                        Text(suraInfo['teksLatin'], style: const TextStyle(fontSize: 16),),
-                        const SizedBox(height: 20),
+
+                        Text(suraInfo['teksLatin'], style: const TextStyle(fontSize: 16,fontWeight: FontWeight.bold),),
+                        SizedBox(height: height*0.03),
                       ],
                     );
                   },
               ),
-              const SizedBox(height: 150,),
+
+              SizedBox(height: height*0.1),
             ],
           ),
         ),
       ),
       extendBody: true,
-      bottomNavigationBar: isLoading? const Center(child: CircularProgressIndicator()):
+
+      bottomNavigationBar: isLoading? const Text(''):
       Container(
         margin: const EdgeInsets.all(10),
         padding: const EdgeInsets.all(10),
@@ -206,6 +213,7 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
         ),
         child: Column(
           children: [
+            /// Slider
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -224,10 +232,11 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                 Text(timeFormat(duration.toInt())),
               ],
             ),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(suraDetails['namaLatin'],style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
+                Text(suraDetails['namaLatin'],style: myFontStyle.copyWith(fontSize: 16,fontWeight: FontWeight.bold)),
                 Row(
                   children: [
                     const Icon(Icons.skip_previous,size: 35),
@@ -242,10 +251,12 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
                           audioPlayer.stop();
                           Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuraDetailsPage(speaker: widget.speaker,index: suraDetails['suratSelanjutnya']['nomor'])));
                         },
-                        child: const Icon(Icons.skip_next,size: 35)),
+                        child: const Icon(Icons.skip_next,size: 35)
+                    ),
                   ],
                 ),
-                Text(suraDetails['nomor'] == 114?'                  ':suraDetails['suratSelanjutnya']['namaLatin'],style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 16)),
+
+                Text(suraDetails['nomor'] == 114?'                  ':suraDetails['suratSelanjutnya']['namaLatin'],style: myFontStyle.copyWith(fontSize: 16,fontWeight: FontWeight.bold)),
               ],
             ),
           ],
@@ -253,4 +264,5 @@ class _SuraDetailsPageState extends State<SuraDetailsPage> {
       ),
     );
   }
+  final myFontStyle = GoogleFonts.averiaLibre(fontSize: 14);
 }

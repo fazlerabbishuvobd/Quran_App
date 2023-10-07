@@ -1,4 +1,3 @@
-
 class AppConstant{
   static List speakerImage = [
     'assets/image/speaker1.jpg',
@@ -15,4 +14,5 @@ class AppConstant{
     'Ibrahim-Al-Dossari',
     'Misyari-Rasyid-Al-Afasi',
   ];
+
 }

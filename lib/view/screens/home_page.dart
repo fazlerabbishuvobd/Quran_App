@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/cubit/suralist_cubit.dart';
 import 'package:quran_app/cubit/suralist_cubit_state.dart';
 import 'package:quran_app/view/screens/search_sura.dart';
@@ -35,21 +36,23 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 80,
+        toolbarHeight: height*0.09,
         leading: const Icon(Icons.menu),
-        title: const Column(
+        title: Column(
           children: [
-            Text("Assalamuyalaikum",style: TextStyle(fontSize: 14),),
-            Text("Fazle Rabbi"),
+            Text("Assalamuyalaikum",style: myFontStyle.copyWith(fontWeight: FontWeight.bold),),
+            Text("Fazle Rabbi",style: myFontStyle.copyWith(fontSize: 20,fontWeight: FontWeight.bold)),
           ],
         ),
+
         actions: [
           IconButton(onPressed: (){
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchSura(sura: sura)));
           }, icon: const Icon(Icons.search)),
-          IconButton(onPressed: (){}, icon: const Icon(Icons.light_mode)),
         ],
         centerTitle: true,
         backgroundColor: Colors.amber,
@@ -76,7 +79,7 @@ class _HomePageState extends State<HomePage> {
 
                       /// Time
                       Container(
-                        height: 150,
+                        height: height*0.16,
                         width: double.infinity,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
@@ -85,33 +88,33 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(DateTime.now().toString().split(' ')[1].split('.')[0],style: const TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-                            const Row(
+                            Text(DateTime.now().toString().split(' ')[1].split('.')[0],
+                                style: myFontStyle.copyWith(fontSize: 30,fontWeight: FontWeight.bold)
+                            ),
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.location_on),
-                                Text("Dhaka, Bangladesh"),
+                                const Icon(Icons.location_on),
+                                Text("Dhaka, Bangladesh",style: myFontStyle.copyWith(fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      SizedBox(height: height*0.02),
 
                       Container(
                           alignment: Alignment.center,
                           height: 30,
                           color: Colors.amber,
-                          child: const Text("Choose a Quran Reciter")
+                          child: Text("Choose a Quran Reciter",style: myFontStyle.copyWith(fontSize: 16,fontWeight: FontWeight.bold))
                       ),
 
                       /// Reciter List
                       SizedBox(
-                        height: 140,
+                        height: height*0.16,
                         child: ListView.separated(
-                          separatorBuilder: (context, index) => const SizedBox(width: 20,),
+                          separatorBuilder: (context, index) => const SizedBox(width: 20),
                           scrollDirection: Axis.horizontal,
                           itemCount:5,
                           itemBuilder: (context, index) {
@@ -140,16 +143,15 @@ class _HomePageState extends State<HomePage> {
                           },
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      SizedBox(height: height*0.02),
 
                       Container(
                           alignment: Alignment.center,
                           height: 30,
                           color: Colors.amber,
-                          child: const Text("Sura List")
+                          child: Text("Sura List",style: myFontStyle.copyWith(fontSize: 16,fontWeight: FontWeight.bold))
                       ),
+                      SizedBox(height: height*0.01),
 
                       /// Sura List
                       ListView.builder(
@@ -175,8 +177,8 @@ class _HomePageState extends State<HomePage> {
                                   Text('${index+1}',style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold))
                                 ],
                               ),
-                              title: Text(suraInfo['namaLatin'],style: const TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
-                              subtitle: Text("${suraInfo['tempatTurun']} - Verse ${suraInfo['jumlahAyat']}"),
+                              title: Text(suraInfo['namaLatin'],style: myFontStyle.copyWith(fontSize: 18,fontWeight: FontWeight.bold)),
+                              subtitle: Text("${suraInfo['tempatTurun']} - Verse ${suraInfo['jumlahAyat']}",style: myFontStyle.copyWith(fontSize: 16)),
                               trailing: Text(suraInfo['nama'],style: const TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
                             ),
                           );
@@ -194,4 +196,5 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+  final myFontStyle = GoogleFonts.averiaLibre(fontSize: 14);
 }
